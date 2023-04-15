@@ -45,6 +45,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertTrue(len(data["categories"]))
 
+    def test_get_all_getegories_not_valid_method(self):
+        res = self.client().post("/categories")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "method not allowed")
+
     def test_get_valid_questions_page(self):
         res = self.client().get("/questions")
         data = json.loads(res.data)
@@ -68,8 +76,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
 
+    def test_create_new_question_failure(self):
+        res = self.client().post("/questions")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "bad request")
+
     def test_delete_question(self):
-        # get the question id to make sure
+        # get the question to make sure the we deleted an existing data
         res = self.client().post("/questions", json={"searchTerm": "diameter"})
         data = json.loads(res.data)["questions"][0]
 
@@ -86,7 +102,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data["success"], False)
 
-    def test_get_book_search_with_results(self):
+    def test_get_question_search_with_results(self):
         res = self.client().post("/questions", json={"searchTerm": "royal"})
         data = json.loads(res.data)
 
@@ -94,7 +110,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertTrue(data["total_questions"])
 
-    def test_get_book_search_without_results(self):
+    def test_get_question_search_without_results(self):
         res = self.client().post(
             "/questions", json={"searchTerm": "applejacks"}
         )
@@ -129,6 +145,19 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
         self.assertEqual(data["question"]["category"], 2)
+
+    def test_get_next_quizzes_not_valid(self):
+        res = self.client().post(
+            "/quizzes",
+            json={
+                "previous_questions": [19, 17],
+                "quiz_category": {"id": 500},
+            },
+        )
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data["success"], False)
 
     """
     TODO

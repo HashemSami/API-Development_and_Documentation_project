@@ -87,7 +87,7 @@ def create_app(test_config=None):
         error = False
         current_questions = []
         total_questions = 0
-        # categories:Category|None
+
         try:
             categories = Category.query.order_by(Category.type).all()
             formated_categories = {
@@ -274,6 +274,8 @@ def create_app(test_config=None):
                     Question.category == category.id,
                     Question.id.notin_([q for q in previous_questions]),
                 )
+                if category is not None
+                else Question.id.notin_([q for q in previous_questions])
             ).all()
 
             random_question = None
@@ -297,7 +299,7 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-            if category is None:
+            if category is None and quiz_category["id"] != 0:
                 abort(404)
 
             if error is True:
@@ -341,6 +343,19 @@ def create_app(test_config=None):
                 {"success": False, "error": 500, "message": "server error"}
             ),
             500,
+        )
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": 405,
+                    "message": "method not allowed",
+                }
+            ),
+            405,
         )
 
     return app
